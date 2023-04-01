@@ -1,0 +1,92 @@
+version: 2.1
+jobs:
+  build and unit test:
+    docker:
+      - image: docker:17.05.0-ce-git
+    working_directory:  ~/sync-endpoint
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run: mvn dependency:go-offline
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+
+      - run:
+          name: build and test
+          command: |
+            mvn clean install
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+
+      - store_test_results:
+          path: ~/test-results
+
+      - store_artifacts:
+          path: my-service/target/my-service.jar
+
+  integrated test:
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch
+    working_directory: ~/sync-endpoint
+    steps:
+      - checkout
+      - run:
+          name: Running integration test
+          command: |
+            mvn clean verify -DskipTests=false -DskipITs=false
+  build and push sync endpoint docker swarm:
+    docker:
+      - image: cimg/base:2022.06
+    working_directory: ~/sync-endpoint
+    steps:
+      - checkout
+      - run:
+          name: Build sync-endpoint-docker-swarm
+          command: docker build -t sync-endpoint-docker-swarm:latest .
+
+      - run:
+          name: Push to Docker Hub
+          command: |
+            docker login -u "${DOCKER_USERNAME} -p "${DOCKER_PASSWORD}
+            docker push sync-endpoint-docker-swarm:latest
+  build and push sync endpoint docker test:
+    docker:
+      - image: cimg/base:2022.06
+    working_directory: ~/sync-endpoint
+    steps:
+      - checkout
+      - run:
+          name: Build sync-endpoint-docker-test
+          command: docker build -t sync-endpoint-docker-test:latest .
+
+      - run:
+          name: Push to Docker Hub
+          command: |
+            docker login -u "${DOCKER_USERNAME} -p "${DOCKER_PASSWORD}
+            docker push sync-endpoint-docker-test:latest
+workflows:
+  build:
+    jobs:
+      - build and unit test
+      - integrated test:
+          requires:
+            - build and unit test
+      - build and push sync endpoint docker swarm:
+          requires:
+            - integrated test
+      - build and push sync endpoint docker test:
+          requires:
+            - integrated test
