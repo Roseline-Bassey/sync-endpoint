@@ -3,6 +3,7 @@ jobs:
   build and unit test:
     docker:
       - image: docker:17.05.0-ce-git
+      - image: circleci/openjdk:8-jdk-stretch
     working_directory:  ~/sync-endpoint
     steps:
       - checkout
