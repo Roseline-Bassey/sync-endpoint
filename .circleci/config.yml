@@ -1,11 +1,9 @@
 version: 2.1
 jobs:
-  set up remote docker:
-    docker:
-      - image: docker:17.05.0-ce-git
-    steps:
-      - checkout
-      - setup_remote_docker
+  docker machine:
+    machine:
+      image: ubuntu-2204:2022.04.2
+
   build and unit test:
     docker:
       - image: circleci/openjdk:8-jdk-stretch
@@ -84,10 +82,10 @@ jobs:
 workflows:
   build:
     jobs:
-      - set up remote docker
+      - docker machine
       - build and unit test:
           requires:
-            - set up remote docker
+            - docker machine
       - integrated test:
           requires:
             - build and unit test
