@@ -3,8 +3,8 @@ jobs:
   docker machine:
     machine:
       image: ubuntu-2204:2022.04.2
-  steps:
-    - checkout
+    steps:
+      - checkout
 
   build and unit test:
     docker:
