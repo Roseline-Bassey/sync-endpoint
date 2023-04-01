@@ -1,13 +1,17 @@
 version: 2.1
 jobs:
-  build and unit test:
+  set up remote docker:
     docker:
       - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+  build and unit test:
+    docker:
       - image: circleci/openjdk:8-jdk-stretch
     working_directory:  ~/sync-endpoint
     steps:
       - checkout
-      - setup_remote_docker
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
@@ -81,7 +85,10 @@ jobs:
 workflows:
   build:
     jobs:
-      - build and unit test
+      - set up remote docker
+      - build and unit test:
+          requires:
+            - set up remote docker
       - integrated test:
           requires:
             - build and unit test
