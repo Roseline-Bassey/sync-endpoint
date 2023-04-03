@@ -16,20 +16,20 @@ jobs:
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
-            # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
+
       - run:  sudo apt-get update && sudo apt-get install -y maven
+      - run:
+          name: build and test
+          command: |
+            mvn clean install
 
       - save_cache:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
-      - run:
-          name: build and test
-          command: |
-            mvn docker:build
-            mvn clean install
+
       - run:
           name: Save test results
           command: |
@@ -87,15 +87,7 @@ workflows:
   build:
     jobs:
       - docker machine
-      - build and unit test:
-          requires:
-            - docker machine
-      - integrated test:
-          requires:
-            - build and unit test
-      - build and push sync endpoint docker swarm:
-          requires:
-            - integrated test
-      - build and push sync endpoint docker test:
-          requires:
-            - integrated test
+      - build and unit test
+      - integrated test
+      - build and push sync endpoint docker swarm
+      - build and push sync endpoint docker test
