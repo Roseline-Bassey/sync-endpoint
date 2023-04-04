@@ -1,18 +1,14 @@
 version: 2.1
 jobs:
-  docker machine:
-    machine:
-      image: ubuntu-2004:202104-01
-
-    steps:
-      - checkout
-
   build and unit test:
-    docker:
-      - image: circleci/openjdk:8-jdk-stretch
     working_directory:  ~/sync-endpoint
+    docker:
+      - image: docker:17.05.0-ce-git
     steps:
       - checkout
+      # This gets the local Docker service started
+      - setup_remote_docker
+
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
