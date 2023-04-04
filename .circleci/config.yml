@@ -82,7 +82,6 @@ jobs:
 workflows:
   build:
     jobs:
-      - docker machine
       - build and unit test
       - integrated test
       - build and push sync endpoint docker swarm
