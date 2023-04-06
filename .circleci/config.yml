@@ -1,3 +1,12 @@
+docker-sign-in: &docker-sign-in
+  name: Sign into Docker registry
+  command: |
+    docker login \
+        -u ${DOCKER_USER} \
+        -p ${DOCKER_PASS} \
+        ${DOCKER_IMAGE}
+
+
 version: 2.1
 jobs:
   build and unit test:
@@ -8,23 +17,20 @@ jobs:
       - checkout
       # This gets the local Docker service started
       - setup_remote_docker
+      - run: *docker-sign-in
+
+      - run: sudo apt-get update && sudo apt-get install -y maven
       - run:
-          name: Install Docker CLI
+          name: build and test
           command: |
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sudo sh get-docker.sh
-            sudo usermod -aG docker $USER
+            mvn clean install  
 
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
             - v1-dependencies-
 
-      - run:  sudo apt-get update && sudo apt-get install -y maven
-      - run:
-          name: build and test
-          command: |
-            mvn clean install
+
 
       - save_cache:
           paths:
