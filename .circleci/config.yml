@@ -1,12 +1,3 @@
-docker-sign-in: &docker-sign-in
-  name: Sign into Docker registry
-  command: |
-    docker login \
-        -u ${DOCKER_USER} \
-        -p ${DOCKER_PASS} \
-        ${DOCKER_IMAGE}
-
-
 version: 2.1
 jobs:
   build and unit test:
@@ -17,7 +8,6 @@ jobs:
       - checkout
       # This gets the local Docker service started
       - setup_remote_docker
-      - run: *docker-sign-in
 
       - run: sudo apt-get update && sudo apt-get install -y maven
       - run:
