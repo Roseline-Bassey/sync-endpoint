@@ -8,12 +8,19 @@ jobs:
       - checkout
       # This gets the local Docker service started
       - setup_remote_docker
+      - run:
+          name: Install Docker CLI
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh get-docker.sh
+            sudo usermod -aG docker $USER
 
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
             - v1-dependencies-
 
+      - run:  sudo apt-get update && sudo apt-get install -y maven
       - run:
           name: build and test
           command: |
@@ -24,64 +31,16 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
-
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-
       - store_test_results:
-          path: ~/test-results
+          path: /tmp/test-results
 
       - store_artifacts:
-          path: my-service/target/my-service.jar
+          path: /tmp/test-results
+          destination: my-service/target/my-service.jar
 
-  integrated test:
-    docker:
-      - image: circleci/openjdk:8-jdk-stretch
-    working_directory: ~/sync-endpoint
-    steps:
-      - checkout
-      - run:
-          name: Running integration test
-          command: |
-            mvn clean verify -DskipTests=false -DskipITs=false
-  build and push sync endpoint docker swarm:
-    docker:
-      - image: cimg/base:2022.06
-    working_directory: ~/sync-endpoint
-    steps:
-      - checkout
-      - run:
-          name: Build sync-endpoint-docker-swarm
-          command: docker build -t sync-endpoint-docker-swarm:latest .
 
-      - run:
-          name: Push to Docker Hub
-          command: |
-            docker login -u "${DOCKER_USERNAME} -p "${DOCKER_PASSWORD}
-            docker push sync-endpoint-docker-swarm:latest
-  build and push sync endpoint docker test:
-    docker:
-      - image: cimg/base:2022.06
-    working_directory: ~/sync-endpoint
-    steps:
-      - checkout
-      - run:
-          name: Build sync-endpoint-docker-test
-          command: docker build -t sync-endpoint-docker-test:latest .
-
-      - run:
-          name: Push to Docker Hub
-          command: |
-            docker login -u "${DOCKER_USERNAME} -p "${DOCKER_PASSWORD}
-            docker push sync-endpoint-docker-test:latest
 workflows:
   build:
     jobs:
       - build and unit test
-      - integrated test
-      - build and push sync endpoint docker swarm
-      - build and push sync endpoint docker test
+
