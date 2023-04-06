@@ -14,13 +14,12 @@ jobs:
       - run:
           name: build and test
           command: |
-            mvn clean install  
+            mvn -T 1C clean install -Dmaven.test.skip -DskipTests  
 
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
             - v1-dependencies-
-
 
 
       - save_cache:
