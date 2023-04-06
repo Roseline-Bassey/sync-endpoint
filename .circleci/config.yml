@@ -3,7 +3,7 @@ jobs:
   build and unit test:
     working_directory:  ~/sync-endpoint
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: ubuntu-2004:202104-01
     steps:
       - checkout
       # This gets the local Docker service started
