@@ -13,7 +13,9 @@ jobs:
       - run: docker network ls
       - run:
           name: build
-          command: mvn -T 1C clean install -Dmaven.test.skip -DskipTests
+          command:
+            docker network prune
+            mvn -T 1C clean install -Dmaven.test.skip -DskipTests
 
       - restore_cache:
           keys:
