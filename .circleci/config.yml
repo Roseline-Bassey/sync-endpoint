@@ -49,7 +49,7 @@ jobs:
       - run:
           name: unit-test
           command: |
-            mvn test         
+            mvn test -Dtest=*Test        
 
 
   integration test:
@@ -67,7 +67,7 @@ jobs:
       - run:
           name: Running integration test
           command: |
-            mvn clean verify         
+            mvn verify -Dit.test=*IT       
 
 
 workflows:
