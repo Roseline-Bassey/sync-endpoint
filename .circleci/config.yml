@@ -15,7 +15,7 @@ jobs:
           name: clean
           command: mvn clean
 
-      - run: mvn clean install -Dmaven.test.skip -DskipIT
+      - run: mvn clean install -Dmaven.test.skip -DskipTests
 
       - restore_cache:
           keys:
@@ -35,6 +35,21 @@ jobs:
           path: /tmp/test-results
           destination: my-service/target/my-service.jar
 
+  unit-test:
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch
+    working_directory: ~/sync-endpoint
+    steps:
+      - checkout
+
+      - setup_remote_docker
+      - run:
+          name: clean
+          command: mvn clean
+      - run:
+          name: unit-test
+          command: |
+            mvn test         
 
 
   integration test:
@@ -52,13 +67,16 @@ jobs:
       - run:
           name: Running integration test
           command: |
-            mvn clean verify -DskipTests=true -DskipITs=false          
+            mvn clean verify         
 
 
 workflows:
   build:
     jobs:
       - build
+      - unit-test:
+          requires:
+            - build
       - integration test:
           requires:
             - build
