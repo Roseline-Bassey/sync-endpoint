@@ -41,9 +41,15 @@ jobs:
     working_directory: ~/sync-endpoint
     steps:
       - checkout
+
+      - setup_remote_docker
+      - run:
+          name: clean
+          command: mvn clean
       - run:
           name: unit-test
           command: |
+            mvn package
             mvn clean test -DskipTests=false -DskipITs=true          
 
 
@@ -53,6 +59,12 @@ jobs:
     working_directory: ~/sync-endpoint
     steps:
       - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: clean
+          command: mvn clean
       - run:
           name: Running integration test
           command: |
@@ -68,6 +80,6 @@ workflows:
             - build
       - integration test:
           requires:
-            - build
+            - unit-test
 
 
