@@ -12,11 +12,10 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y maven
 
       - run:
-          name: network
-          command:
-            docker network prune -f
+          name: clean
+          command: mvn clean
 
-      - run: mvn -T 1C clean install -Dmaven.test.skip -DskipTests
+      - run: mvn clean install -Dmaven.test.skip -DskipTests
 
       - restore_cache:
           keys:
