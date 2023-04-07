@@ -1,22 +1,19 @@
 version: 2.1
 jobs:
-  build and unit test:
+  build:
     working_directory:  ~/sync-endpoint
     docker:
       - image: circleci/openjdk:8-jdk-stretch
 
     steps:
       - checkout
-      # This gets the local Docker service started
       - setup_remote_docker
 
       - run: sudo apt-get update && sudo apt-get install -y maven
-      - run:
-          name: build and test
-          command: |
-            mvn -T 1C clean install -Dmaven.test.skip -DskipTests 
-
       - run: docker network ls
+      - run:
+          name: build
+          command: mvn -T 1C clean install -Dmaven.test.skip -DskipTests
 
       - restore_cache:
           keys:
@@ -36,9 +33,33 @@ jobs:
           path: /tmp/test-results
           destination: my-service/target/my-service.jar
 
+  unit-test:
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch
+    working_directory: ~/sync-endpoint
+    steps:
+      - checkout
+      - run:
+          name: Running unit-test
+          command: |
+            mvn clean test
+
+  integration-test:
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch
+    working_directory: ~/sync-endpoint
+    steps:
+      - checkout
+      - run:
+          name: Running integration test
+          command: |
+            mvn clean verify -DskipTests=false -DskipITs=false        
+
 
 workflows:
   build:
     jobs:
-      - build and unit test
+      - build
+      - unit-test
+      - integration-test
 
