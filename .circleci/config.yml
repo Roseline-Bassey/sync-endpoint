@@ -32,8 +32,8 @@ jobs:
           path: test-results
 
       - store_artifacts:
-          path: /tmp/test-results
-          destination: my-service/target/my-service.jar
+          path: target/
+          destination: my-service/target/
 
   unit-test:
     docker:
@@ -43,13 +43,15 @@ jobs:
       - checkout
 
       - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
       - run:
-          name: clean
-          command: mvn clean
-      - run:
-          name: unit-test
-          command: |
-            mvn test -Dit.test=*Test        
+          name: unit-tests
+          command: mvn clean test -DskipITs
+      - store_test_results:
+          path: test-results
 
 
   integration test:
@@ -60,14 +62,18 @@ jobs:
       - checkout
 
       - setup_remote_docker
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
+      - run:
+          name: running integration tests
+          command: mvn clean verify -DskipTests
+      - store_test_results:
+          path: test-results
 
-      - run:
-          name: clean
-          command: mvn clean
-      - run:
-          name: Running integration test
-          command: |
-            mvn verify -Dit.test=*IT       
 
 
 workflows:
@@ -80,5 +86,6 @@ workflows:
       - integration test:
           requires:
             - build
-
+          artifacts:
+            - test-results/target/my-service/target
 
