@@ -15,7 +15,7 @@ jobs:
           name: clean
           command: mvn clean
 
-      - run:  mvn clean package -DskipTests=true
+      - run:  mvn clean install -DskipITs=true
 
 
       - restore_cache:
@@ -29,30 +29,11 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
       - store_test_results:
-          path: test-results
+          path: sync-endpoint/postgres-test/target
 
       - store_artifacts:
           path: target/
           destination: my-service/target/
-
-  unit-test:
-    docker:
-      - image: circleci/openjdk:8-jdk-stretch
-    working_directory: ~/sync-endpoint
-    steps:
-      - checkout
-
-      - setup_remote_docker
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "pom.xml" }}
-            - v1-dependencies-
-      - run:
-          name: unit-tests
-          command: mvn clean test -DskipITs=true
-
-      - store_test_results:
-          path: test-results
 
 
   integration-test:
@@ -70,10 +51,10 @@ jobs:
             - v1-dependencies-
       - run:
           name: running integration tests
-          command: mvn clean verify -Dskip.ut=true
+          command: mvn clean verify -DskipTests=true
 
       - store_test_results:
-          path: test-results
+          path:  sync-endpoint/postgres-test/target
 
 
 
@@ -81,9 +62,6 @@ workflows:
   build:
     jobs:
       - build
-      - unit-test:
-          requires:
-            - build
       - integration-test:
           requires:
             - build
