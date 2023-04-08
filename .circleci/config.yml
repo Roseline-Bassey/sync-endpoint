@@ -15,7 +15,8 @@ jobs:
           name: clean
           command: mvn clean
 
-      - run: mvn clean install -Dmaven.test.skip -DskipTests
+      - run:  mvn clean package -DskipTests=true
+
 
       - restore_cache:
           keys:
@@ -48,7 +49,7 @@ jobs:
             - v1-dependencies-
       - run:
           name: unit-tests
-          command: mvn clean test -DskipITs
+          command: mvn clean test -DskipITs=true
 
       - store_test_results:
           path: test-results
@@ -69,7 +70,7 @@ jobs:
             - v1-dependencies-
       - run:
           name: running integration tests
-          command: mvn clean verify -Dskip.unit.tests
+          command: mvn clean verify -Dskip.ut=true
 
       - store_test_results:
           path: test-results
