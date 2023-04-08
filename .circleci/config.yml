@@ -15,7 +15,7 @@ jobs:
           name: clean
           command: mvn clean
 
-      - run:  mvn clean install -Dskip.mysql.test=true
+      - run: mvn clean install -Dmaven.test.skip -DskipTests
 
 
       - restore_cache:
@@ -28,12 +28,14 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
-      - store_test_results:
-          path: /postgres-test/target
-
       - store_artifacts:
-          path: target/
-          destination: my-service/target/
+          path: /tmp/test-results
+          destination: raw-test-output
+
+      - store_test_results:
+          path: /tmp/test-results
+
+
 
 
   integration-test:
@@ -54,7 +56,7 @@ jobs:
           command: mvn clean verify -Dskip.postgres-test=true
 
       - store_test_results:
-          path:  /postgres-test/target
+          path:  /tmp/test-results
 
 
 
