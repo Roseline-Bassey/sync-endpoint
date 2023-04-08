@@ -15,7 +15,7 @@ jobs:
           name: clean
           command: mvn clean
 
-      - run:  mvn clean install -DskipITs=true
+      - run:  mvn clean install -Dskip.mysql.test=true
 
 
       - restore_cache:
@@ -29,7 +29,7 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
       - store_test_results:
-          path: sync-endpoint/postgres-test/target
+          path: /postgres-test/target
 
       - store_artifacts:
           path: target/
@@ -51,10 +51,10 @@ jobs:
             - v1-dependencies-
       - run:
           name: running integration tests
-          command: mvn clean verify -DskipTests=true
+          command: mvn clean verify -Dskip.postgres-test=true
 
       - store_test_results:
-          path:  sync-endpoint/postgres-test/target
+          path:  /postgres-test/target
 
 
 
