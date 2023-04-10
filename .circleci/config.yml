@@ -17,7 +17,7 @@ jobs:
 
       - run: docker swarm init
 
-      - run: mvn clean install
+      - run: mvn clean install -Dmaven.test.skip -DskipTests
 
 
       - restore_cache:
@@ -37,11 +37,60 @@ jobs:
       - store_test_results:
           path: /tmp/test-results
 
+  unit-test:
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch
+    working_directory: ~/sync-endpoint
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
+      - run:
+          name: running unit tests
+          command: mvn surefire:test
+
+
+      - store_test_results:
+          path: /tmp/test-results
+
+
+
+
+  integration-test:
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch
+    working_directory: ~/sync-endpoint
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
+      - run:
+          name: running integration tests
+          command: mvn failsafe:integration-test
+
+      - store_test_results:
+          path:  /tmp/test-results
+
+
 
 workflows:
   build:
     jobs:
       - build
-
-
+      - unit-test:
+          requires:
+            - build
+      - integration-test:
+          requires:
+            - build
 
