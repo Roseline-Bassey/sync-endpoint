@@ -17,7 +17,7 @@ jobs:
 
       - run: docker swarm init
 
-      - run: mvn clean install -Dmaven.test.skip -DskipTests
+      - run: mvn clean package
 
 
       - restore_cache:
